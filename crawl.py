@@ -75,10 +75,6 @@ def getFinalLinks(url, limit):
             linksToReturn.append(getLinksWithinTag(link, 'class', 'tableFile')[0])
     return linksToReturn
 
-# getFinalLinks(urlArg, limit)
-# for link in linksToReturn:
-#     webbrowser.open_new_tab(link)
-
 def main():
     linksToOpen = getFinalLinks(urlArg, limit)
     nextPageLinks = getNextPageLinks(urlArg)
