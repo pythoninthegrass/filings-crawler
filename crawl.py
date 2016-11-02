@@ -7,7 +7,6 @@ from BeautifulSoup import BeautifulSoup, SoupStrainer
 
 http = httplib2.Http()
 urlArg = sys.argv[1] # sec.gov > filings > company filings search > latest filings > type '8-k' in Form Type
-limit = 20 # this is the limit of 8-k's you want to check for 'other events', so the number of final results will likely be smaller
 
 def getDomain(url):
     parsedUrl = urlparse(url)
@@ -17,32 +16,15 @@ def getSoup(url):
     status, response = http.request(url)
     return BeautifulSoup(response)
 
-def getNextPageLinks(url):
-    if limit <= 40:
-        return
+def getLinksWithText(url, text):
     linksToReturn = []
-    domain = getDomain(url)
-    soup = getSoup(url)
-    iterations = math.ceil((limit - 40) / 40.0) # ensure rounding UP, by using one float so that ceil precedes int rounding
-    currentUrl = url
-    for i in range(iterations):
-        next40Link = getLinksWithText(url, 'Next 40', 1)
-        linksToReturn.append(next40Link)
-        currentUrl = next40Link
-    return linksToReturn
-
-def getLinksWithText(url, text, limit):
-    linksToReturn = []
-    counter = 0
     domain = getDomain(url)
     soup = getSoup(url)
     for tag in soup.findAll('a', href=True, text=text):
-        if counter < limit:
-            link = tag.parent['href']
-            if link[:4] != 'http':
-                link = domain + link
-            linksToReturn.append(link)
-            counter += 1
+        link = tag.parent['href']
+        if link[:4] != 'http':
+            link = domain + link
+        linksToReturn.append(link)
     return linksToReturn
 
 def getLinksWithinTag(url, attrName, attrValue):
@@ -67,21 +49,17 @@ def containsOtherEvents(url):
     else:
         return False
 
-def getFinalLinks(url, limit):
+def getFinalLinks(url):
     linksToReturn = []
-    links = getLinksWithText(url, '[html]', limit)
+    links = getLinksWithText(url, '[html]')
     for link in links:
         if containsOtherEvents(link):
             linksToReturn.append(getLinksWithinTag(link, 'class', 'tableFile')[0])
     return linksToReturn
 
 def main():
-    linksToOpen = getFinalLinks(urlArg, limit)
-    nextPageLinks = getNextPageLinks(urlArg)
-    if nextPageLinks != None:
-        for link in getNextPageLinks(urlArg):
-            linksToOpen.append(getFinalLinks(link, limit))
-    for link in linksToOpen:
+    finalLinks = getFinalLinks(urlArg)
+    for link in finalLinks:
         webbrowser.open_new_tab(link)
 
 main()
