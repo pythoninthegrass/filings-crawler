@@ -1,11 +1,12 @@
 import sys
 import httplib2
 import webbrowser
+import math
 from urlparse import urlparse
 from BeautifulSoup import BeautifulSoup, SoupStrainer
 
 http = httplib2.Http()
-urlArg = sys.argv[1] # sec.gov > filings > company filings search > latest filings
+urlArg = sys.argv[1] # sec.gov > filings > company filings search > latest filings > type '8-k' in Form Type
 limit = 20 # this is the limit of 8-k's you want to check for 'other events', so the number of final results will likely be smaller
 
 def getDomain(url):
@@ -15,6 +16,20 @@ def getDomain(url):
 def getSoup(url):
     status, response = http.request(url)
     return BeautifulSoup(response)
+
+def getNextPageLinks(url):
+    if limit <= 40:
+        return
+    linksToReturn = []
+    domain = getDomain(url)
+    soup = getSoup(url)
+    iterations = math.ceil((limit - 40) / 40.0) # ensure rounding UP, by using one float so that ceil precedes int rounding
+    currentUrl = url
+    for i in range(iterations):
+        next40Link = getLinksWithText(url, 'Next 40', 1)
+        linksToReturn.append(next40Link)
+        currentUrl = next40Link
+    return linksToReturn
 
 def getLinksWithText(url, text, limit):
     linksToReturn = []
@@ -52,17 +67,25 @@ def containsOtherEvents(url):
     else:
         return False
 
-def main(url, limit):
-    linksToOpen = []
+def getFinalLinks(url, limit):
+    linksToReturn = []
     links = getLinksWithText(url, '[html]', limit)
     for link in links:
         if containsOtherEvents(link):
-            print getLinksWithinTag(link, 'class', 'tableFile')[0]
-            linksToOpen.append(getLinksWithinTag(link, 'class', 'tableFile')[0])
-    if len(linksToOpen) != 0:
-        for link in linksToOpen:
-            webbrowser.open_new_tab(link)
-    else:
-        print 'No filings with "Other Events" were found.'
+            linksToReturn.append(getLinksWithinTag(link, 'class', 'tableFile')[0])
+    return linksToReturn
 
-main(urlArg, limit)
+# getFinalLinks(urlArg, limit)
+# for link in linksToReturn:
+#     webbrowser.open_new_tab(link)
+
+def main():
+    linksToOpen = getFinalLinks(urlArg, limit)
+    nextPageLinks = getNextPageLinks(urlArg)
+    if nextPageLinks != None:
+        for link in getNextPageLinks(urlArg):
+            linksToOpen.append(getFinalLinks(link, limit))
+    for link in linksToOpen:
+        webbrowser.open_new_tab(link)
+
+main()
