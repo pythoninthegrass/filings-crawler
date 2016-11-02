@@ -5,9 +5,8 @@ from urlparse import urlparse
 from BeautifulSoup import BeautifulSoup, SoupStrainer
 
 http = httplib2.Http()
-urlArg = sys.argv[1]
-limit = 20 # this is the limit of 8-k's you want to check for 'other events', so the number of final results will likely be less than this number
-# https://www.sec.gov/cgi-bin/current?q1=0&q2=4&q3=
+urlArg = sys.argv[1] # sec.gov > filings > company filings search > latest filings
+limit = 20 # this is the limit of 8-k's you want to check for 'other events', so the number of final results will likely be smaller
 
 def getDomain(url):
     parsedUrl = urlparse(url)
@@ -55,21 +54,15 @@ def containsOtherEvents(url):
 
 def main(url, limit):
     linksToOpen = []
-    links = getLinksWithText(url, '8-K', limit)
+    links = getLinksWithText(url, '[html]', limit)
     for link in links:
         if containsOtherEvents(link):
             print getLinksWithinTag(link, 'class', 'tableFile')[0]
             linksToOpen.append(getLinksWithinTag(link, 'class', 'tableFile')[0])
-    for link in linksToOpen:
-        webbrowser.open_new_tab(link)
-
+    if len(linksToOpen) != 0:
+        for link in linksToOpen:
+            webbrowser.open_new_tab(link)
+    else:
+        print 'No filings with "Other Events" were found.'
 
 main(urlArg, limit)
-# webbrowser.open_new_tab('http://sec.gov' + link.encode('utf-8'))
-
-
-
-
-
-# filingLinks = getLinksWithText(urlArg, '8-K')
-# getLinksWithinTag(urlArg, 'class', 'tableFile')
