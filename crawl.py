@@ -1,7 +1,6 @@
 import sys
 import httplib2
 import webbrowser
-import math
 from urlparse import urlparse
 from BeautifulSoup import BeautifulSoup, SoupStrainer
 
