@@ -5,7 +5,8 @@ from urlparse import urlparse
 from BeautifulSoup import BeautifulSoup, SoupStrainer
 
 http = httplib2.Http()
-urlArg = sys.argv[1] # sec.gov > filings > company filings search > latest filings > type '8-k' in Form Type
+# urlArg = sys.argv[1] # sec.gov > filings > company filings search > latest filings > type '8-k' in Form Type
+urlArg = 'https://www.sec.gov/cgi-bin/browse-edgar?company=&CIK=&type=8-k&owner=include&count=100&action=getcurrent'
 
 def getDomain(url):
     parsedUrl = urlparse(url)
@@ -56,9 +57,20 @@ def getFinalLinks(url):
             linksToReturn.append(getLinksWithinTag(link, 'class', 'tableFile')[0])
     return linksToReturn
 
+def getLastViewed():
+    f = open('lastViewed.txt', 'r')
+    lastViewed = f.read()
+    f.close()
+    return lastViewed
+
+def setLastViewed(url):
+    f = open('lastViewed.txt', 'w')
+    f.write(url)
+    f.close()
+
 def main():
     finalLinks = getFinalLinks(urlArg)
     for link in finalLinks:
         webbrowser.open_new_tab(link)
 
-main()
+# main()
