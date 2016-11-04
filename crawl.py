@@ -73,4 +73,4 @@ def main():
     for link in finalLinks:
         webbrowser.open_new_tab(link)
 
-# main()
+main()
