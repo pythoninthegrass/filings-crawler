@@ -18,13 +18,17 @@ def getSoup(url):
 
 def getLinksWithText(url, text):
     linksToReturn = []
+    lastViewed = getLastViewed()
     domain = getDomain(url)
     soup = getSoup(url)
     for tag in soup.findAll('a', href=True, text=text):
         link = tag.parent['href']
         if link[:4] != 'http':
             link = domain + link
-        linksToReturn.append(link)
+        if link == lastViewed:
+            break
+        linksToReturn.append(link) # [0] is the most recent
+    setLastViewed(linksToReturn[0])
     return linksToReturn
 
 def getLinksWithinTag(url, attrName, attrValue):
@@ -58,19 +62,23 @@ def getFinalLinks(url):
     return linksToReturn
 
 def getLastViewed():
-    f = open('lastViewed.txt', 'r')
-    lastViewed = f.read()
-    f.close()
-    return lastViewed
+    try:
+        with open('lastViewed.txt', 'r') as f:
+            lastViewed = f.read()
+            return lastViewed
+    except IOError:
+        return None
 
 def setLastViewed(url):
-    f = open('lastViewed.txt', 'w')
-    f.write(url)
-    f.close()
+    with open('lastViewed.txt', 'w') as f:
+        f.write(url)
 
 def main():
     finalLinks = getFinalLinks(urlArg)
-    for link in finalLinks:
-        webbrowser.open_new_tab(link)
+    if len(finalLinks) == 0:
+        print 'No new "Other Events" filings on this page since last check'
+    else:
+        for link in finalLinks:
+            webbrowser.open_new_tab(link)
 
 main()
