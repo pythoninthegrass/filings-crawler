@@ -5,8 +5,7 @@ from urlparse import urlparse
 from BeautifulSoup import BeautifulSoup, SoupStrainer
 
 http = httplib2.Http()
-# urlArg = sys.argv[1]
-# sec.gov > filings > company filings search > latest filings > type '8-k' in Form Type
+# MIGHT HAVE TO UPDATE URL: sec.gov > filings > company filings search > latest filings > type '8-k' in Form Type
 urlArg = 'https://www.sec.gov/cgi-bin/browse-edgar?company=&CIK=&type=8-k&owner=include&count=40&action=getcurrent'
 
 def getDomain(url):
